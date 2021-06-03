@@ -187,10 +187,61 @@ def positive(x, th, th0):
 def score(data, labels, th, th0):
     return np.sum(positive(data, th, th0) == labels)
 
+def score_top_ten(data, labels, th, th0):
+    #distance from the hyperplane
+    return np.sum(positive(data, th, th0) == labels)
+
 def eval_classifier(learner, data_train, labels_train, data_test, labels_test):
     th, th0 = learner(data_train, labels_train)
     #TODO: remove this print line!
-    print (f"*** th: {th} th0 {th0}") 
+    #print (f"*** th: {th} th0 {th0}")
+    return score(data_test, labels_test, th, th0)/data_test.shape[1]
+
+def eval_classifier_review(learner, data_train, labels_train, data_test, labels_test, dictionary,review_texts):
+    th, th0 = learner(data_train, labels_train)
+    #TODO: remove this print line!
+    #print (f"*** th: {th} th0 {th0}")
+    #TODO: remove the following section used in 5.2
+    score_dict = {}
+    lookup_dict = reverse_dict(dictionary)
+    for _ in range(len(th)):
+        key = th[_][0]
+        if key in score_dict:
+            score_dict[key].append(lookup_dict[_])
+        else:
+            score_dict[key]=[lookup_dict[_]]
+
+    sorted_scores = sorted(score_dict)
+
+    print(f"\nten most negative\n")
+    worst = []
+    for _ in range(10):
+        print(f"{_}: {sorted_scores[_]} {score_dict[sorted_scores[_]]}")
+        worst.append(score_dict[sorted_scores[_]])
+
+    print(worst)
+
+    print(f"\nten most positive\n")
+    best = []
+    for _ in range(len(sorted_scores)-1,len(sorted_scores)-11,-1):
+        print(f"{_}: {sorted_scores[_]} {score_dict[sorted_scores[_]]}")
+        best.append(score_dict[sorted_scores[_]])
+    print(best)
+
+    #best and worst reviews
+    
+    #for _ in range(len(data_train)):
+        #distances.append(th.T@data_train[_] + th0)
+    distances = th.T@data_train + th0
+    
+    best_review = np.argmax(distances[0])
+    worst_review = np.argmin(distances[0])
+    #print(f"worst review distance\n {distances[0][worst_review]} : {review_texts[worst_review]}")
+    #print(f"best review distance\n {distances[0][best_review]} : {review_texts[best_review]}")
+
+    #TODO: end of 5.2 section
+
+
     return score(data_test, labels_test, th, th0)/data_test.shape[1]
 
 def xval_learning_alg(learner, data, labels, k):
@@ -211,6 +262,26 @@ def xval_learning_alg(learner, data, labels, k):
         labels_test = np.array(s_labels[i])
         score_sum += eval_classifier(learner, data_train, labels_train,
                                               data_test, labels_test)
+    return score_sum/k
+
+def xval_learning_alg_review(learner, data, labels, k,dictionary,review_texts):
+    _, n = data.shape
+    idx = list(range(n))
+    np.random.seed(0)
+    np.random.shuffle(idx)
+    data, labels = data[:,idx], labels[:,idx]
+
+    s_data = np.array_split(data, k, axis=1)
+    s_labels = np.array_split(labels, k, axis=1)
+
+    score_sum = 0
+    for i in range(k):
+        data_train = np.concatenate(s_data[:i] + s_data[i+1:], axis=1)
+        labels_train = np.concatenate(s_labels[:i] + s_labels[i+1:], axis=1)
+        data_test = np.array(s_data[i])
+        labels_test = np.array(s_labels[i])
+        score_sum += eval_classifier_review(learner, data_train, labels_train,
+                                              data_test, labels_test,dictionary,review_texts)
     return score_sum/k
 
 ######################################################################

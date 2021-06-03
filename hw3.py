@@ -31,7 +31,7 @@ def perceptron_origin(data,labels,T):
 
 h3_data=np.array([[200,800,200,800],[0.2,0.2,0.8,0.8],[1,1,1,1]])
 h3_labels = np.array([[-1,-1,1,1]])
-
+"""
 print(f"***************** h3 original:*************** ")
 print(f"h3_data = {h3_data}")
 print(f"answer: {perceptron_origin(h3_data,h3_labels,-1)}")
@@ -42,7 +42,7 @@ for _ in range (len(h3_data[0])):
 print(f"***************** h3 MODIFIED:*************** ")
 print(f"h3_data = {h3_data}")
 print(f"answer: {perceptron_origin(h3_data,h3_labels,-1)}")
-
+"""
 
 def add_offset_row(data):
     """
@@ -99,17 +99,19 @@ for datafn in (super_simple_separable_through_origin,super_simple_separable):
    test_linear_classifier(datafn,perceptron,draw=True)
 '''
 
+"""
 print(f"&&&&&&&&&&&&&& homework 3 q 2 &&&&&&&&&&&&&&&&")
 h3_data=np.array([[2,3,4,5]])
 h3_labels = np.array([[1,1,-1,-1]])
 
 print(f"answer: {perceptron(h3_data,h3_labels)}")
+"""
 
 def one_hot(x, k):
     out = np.zeros((k,1))
     out[x-1][0]=1
     return out
-
+"""
 print(f"&&&&&&&&&&&&&& homework 3 q 2E &&&&&&&&&&&&&&&&")
 
 new_h3_data=[]
@@ -128,3 +130,4 @@ new_h3_data=np.array([[1,0,0,0,0,0],[0,1,0,0,0,0],[0,0,1,0,0,0],[0,0,0,1,0,0],[0
 h3_labels = np.array([[1,1,-1,-1,1,1]])
 print(f"data: {new_h3_data}")
 print(f"answer: {perceptron_origin(new_h3_data,h3_labels,100)}")
+"""

@@ -87,8 +87,17 @@ for T in Ts:
         evaluate_auto(learner,T,feature_set)
 """
 #following for 4.2 A)
-evaluate_auto(hw3.averaged_perceptron,1,feature_set2)
+#evaluate_auto(hw3.averaged_perceptron,1,feature_set2)
 
+"""following for 4.2 B) find 2 features that can produce comparable performance (0.9005)
+"""
+"""
+feature_set_min=[('cylinders', hw3.one_hot),
+            ('weight', hw3.standard)]
+#cylinders and weight gives 0.8953205128205128
+print("\nusing feature set min\n")
+evaluate_auto(hw3.averaged_perceptron,1,feature_set_min)
+"""
 
 #-------------------------------------------------------------------------------
 # Review Data
@@ -114,6 +123,38 @@ print('review_bow_data and labels shape', review_bow_data.shape, review_labels.s
 #-------------------------------------------------------------------------------
 
 # Your code here to process the review data
+
+def evaluate_review(learner,data,labels,T,dictionary):
+    print(f" T: {T} result: {hw3.xval_learning_alg_review(lambda d,l: learner(d,l,{'T':T}),data,labels,10,dictionary,review_texts)}")
+
+#following for 5.1
+"""
+Ts = [1,10,50]
+learners = [hw3.perceptron,hw3.averaged_perceptron]
+
+for T in Ts:
+    for learner in learners:
+        evaluate_review(learner,review_bow_data,review_labels,T)
+"""
+
+#5.2 find the 10 "best" and "worst" words
+score_sum = hw3.eval_classifier_review(lambda d,l: hw3.averaged_perceptron(d,l,{'T':10}),review_bow_data,review_labels, review_bow_data,review_labels,dictionary,review_texts)
+print(score_sum)
+
+#5.2 extra find the 10 best and worst reviews
+"""
+
+def positive(x, th, th0):
+    return np.sign(th.T@x + th0)
+
+def score(data, labels, th, th0):
+    return np.sum(positive(data, th, th0) == labels)
+
+I need to have (th.T@x + th0) - have as list with index
+
+"""
+
+
 
 #-------------------------------------------------------------------------------
 # MNIST Data
@@ -162,8 +203,11 @@ def row_average_features(x):
     @param x (n_samples,m,n) array with values in (0,1)
     @return (m,n_samples) array where each entry is the average of a row
     """
-    raise Exception("modify me!")
+    #TODO: modify for 3d input
+    return np.reshape(np.average(x,axis=1),(-1,1))
 
+print("row average:\n")
+print(row_average_features(np.array([[1,2,3],[3,9,2]])).tolist())
 
 def col_average_features(x):
     """
@@ -172,7 +216,8 @@ def col_average_features(x):
     @param x (n_samples,m,n) array with values in (0,1)
     @return (n,n_samples) array where each entry is the average of a column
     """
-    raise Exception("modify me!")
+        #TODO: modify for 3d input
+    return np.reshape(np.average(x,axis=0),(-1,1))
 
 
 def top_bottom_features(x):
@@ -185,7 +230,16 @@ def top_bottom_features(x):
     and the second entry is the average of the bottom half of the image
     = rows floor(m/2) [inclusive] to m
     """
-    raise Exception("modify me!")
+    #n_samples,m,n = np.shape(x)
+    m,n = np.shape(x)
+    top_half = x[0:int(np.floor(m/2))]
+    btm_half = x[int(np.floor(m/2)):]
+    # top_average = col_average_features(top_half)
+    # btm_average = col_average_features(top_half)
+    return np.array([[np.average(top_half)],[np.average(btm_half)]])
+
+
+top_bottom_features(np.array([[1,2,3],[4,5,6],[7,8,9]]))
 
 # use this function to evaluate accuracy
 acc = hw3.get_classification_accuracy(raw_mnist_features(data), labels)
