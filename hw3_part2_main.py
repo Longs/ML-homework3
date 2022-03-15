@@ -194,7 +194,10 @@ def raw_mnist_features(x):
     @param x (n_samples,m,n) array with values in (0,1)
     @return (m*n,n_samples) reshaped array where each entry is preserved
     """
-    raise Exception("implement me!")
+    n_samples,m,n = np.shape(x)
+    flattened = np.reshape((x),(-1,m*n)) #(nsamples,m*n)
+    out = np.reshape((flattened.T),(m*n,-1))
+    return out
 
 def row_average_features(x):
     """
@@ -204,10 +207,14 @@ def row_average_features(x):
     @return (m,n_samples) array where each entry is the average of a row
     """
     #TODO: modify for 3d input
-    return np.reshape(np.average(x,axis=1),(-1,1))
+    out = []
+    for sample in x:
+        #out.append(np.reshape(np.average(sample,axis=1),(-1,1)))
+        out.append(np.average(sample,axis=1))
+    return np.array(out).T
 
 print("row average:\n")
-print(row_average_features(np.array([[1,2,3],[3,9,2]])).tolist())
+print(row_average_features(np.array([[[1,2,3],[3,9,2]],[[6,7,8],[3,9,2]]])).tolist())
 
 def col_average_features(x):
     """
@@ -216,8 +223,12 @@ def col_average_features(x):
     @param x (n_samples,m,n) array with values in (0,1)
     @return (n,n_samples) array where each entry is the average of a column
     """
+    out = []
+    for sample in x:
         #TODO: modify for 3d input
-    return np.reshape(np.average(x,axis=0),(-1,1))
+        #out.append(np.reshape(np.average(sample,axis=0),(-1,1)))
+        out.append(np.average(sample,axis=0))
+    return np.array(out).T
 
 
 def top_bottom_features(x):
@@ -230,16 +241,20 @@ def top_bottom_features(x):
     and the second entry is the average of the bottom half of the image
     = rows floor(m/2) [inclusive] to m
     """
-    #n_samples,m,n = np.shape(x)
-    m,n = np.shape(x)
-    top_half = x[0:int(np.floor(m/2))]
-    btm_half = x[int(np.floor(m/2)):]
-    # top_average = col_average_features(top_half)
-    # btm_average = col_average_features(top_half)
-    return np.array([[np.average(top_half)],[np.average(btm_half)]])
+    n_samples,m,n = np.shape(x)
+    #m,n = np.shape(x)
+    out=[]
+    #loops ARE allowed
+    for sample in x:
+        #print(sample)
+        top_half = sample[0:int(np.floor(m/2))]
+        btm_half = sample[int(np.floor(m/2)):]
+        out.append([np.average(top_half),np.average(btm_half)])
+
+    return np.array(out).T
 
 
-top_bottom_features(np.array([[1,2,3],[4,5,6],[7,8,9]]))
+#top_bottom_features(np.array([[[1,2,3],[4,5,6],[7,8,9]],[[4,5,6],[1,2,3],[1,2,3]]]))
 
 # use this function to evaluate accuracy
 acc = hw3.get_classification_accuracy(raw_mnist_features(data), labels)
@@ -250,3 +265,77 @@ acc = hw3.get_classification_accuracy(raw_mnist_features(data), labels)
 
 # Your code here to process the MNIST data
 
+def MNIST_task_accuracy(feature,d_0,d_1):
+
+    d0 = mnist_data_all[d_0]["images"]
+    d1 = mnist_data_all[d_1]["images"]
+    y0 = np.repeat(-1, len(d0)).reshape(1,-1)
+    y1 = np.repeat(1, len(d1)).reshape(1,-1)
+
+    # data goes into the feature computation functions
+    data = np.vstack((d0, d1))
+    # labels can directly go into the perceptron algorithm
+    labels = np.vstack((y0.T, y1.T)).T
+
+    return hw3.get_classification_accuracy(feature(data), labels)
+
+#6.2A
+
+feature = raw_mnist_features
+
+d_0 = 0
+d_1 = 1
+print(f"task {d_0} vs {d_1}: Accuracy = {MNIST_task_accuracy(feature,d_0,d_1)} /n")
+d_0 = 2
+d_1 = 4
+print(f"task {d_0} vs {d_1}: Accuracy = {MNIST_task_accuracy(feature,d_0,d_1)} /n")
+d_0 = 6 
+d_1 = 8
+print(f"task {d_0} vs {d_1}: Accuracy = {MNIST_task_accuracy(feature,d_0,d_1)} /n")
+d_0 = 9 
+d_1 = 0
+print(f"task {d_0} vs {d_1}: Accuracy = {MNIST_task_accuracy(feature,d_0,d_1)} /n")
+
+feature = raw_mnist_features
+d_0 = 0
+d_1 = 1
+print(f"task {d_0} vs {d_1} Feature {feature.__name__} Accuracy = {MNIST_task_accuracy(feature,d_0,d_1)} /n")
+feature = row_average_features
+print(f"task {d_0} vs {d_1} Feature {feature.__name__} Accuracy = {MNIST_task_accuracy(feature,d_0,d_1)} /n")
+feature = col_average_features
+print(f"task {d_0} vs {d_1} Feature {feature.__name__} Accuracy = {MNIST_task_accuracy(feature,d_0,d_1)} /n")
+feature = top_bottom_features
+print(f"task {d_0} vs {d_1} Feature {feature.__name__} Accuracy = {MNIST_task_accuracy(feature,d_0,d_1)} /n")
+
+feature = raw_mnist_features
+d_0 = 2
+d_1 = 4
+print(f"task {d_0} vs {d_1} Feature {feature.__name__} Accuracy = {MNIST_task_accuracy(feature,d_0,d_1)} /n")
+feature = row_average_features
+print(f"task {d_0} vs {d_1} Feature {feature.__name__} Accuracy = {MNIST_task_accuracy(feature,d_0,d_1)} /n")
+feature = col_average_features
+print(f"task {d_0} vs {d_1} Feature {feature.__name__} Accuracy = {MNIST_task_accuracy(feature,d_0,d_1)} /n")
+feature = top_bottom_features
+print(f"task {d_0} vs {d_1} Feature {feature.__name__} Accuracy = {MNIST_task_accuracy(feature,d_0,d_1)} /n")
+
+feature = raw_mnist_features
+d_0 = 6
+d_1 = 8
+print(f"task {d_0} vs {d_1} Feature {feature.__name__} Accuracy = {MNIST_task_accuracy(feature,d_0,d_1)} /n")
+feature = row_average_features
+print(f"task {d_0} vs {d_1} Feature {feature.__name__} Accuracy = {MNIST_task_accuracy(feature,d_0,d_1)} /n")
+feature = col_average_features
+print(f"task {d_0} vs {d_1} Feature {feature.__name__} Accuracy = {MNIST_task_accuracy(feature,d_0,d_1)} /n")
+feature = top_bottom_features
+print(f"task {d_0} vs {d_1} Feature {feature.__name__} Accuracy = {MNIST_task_accuracy(feature,d_0,d_1)} /n")
+
+feature = raw_mnist_features
+d_0 = 9
+d_1 = 0
+print(f"task {d_0} vs {d_1} Feature {feature.__name__} Accuracy = {MNIST_task_accuracy(feature,d_0,d_1)} /n")
+feature = row_average_features
+print(f"task {d_0} vs {d_1} Feature {feature.__name__} Accuracy = {MNIST_task_accuracy(feature,d_0,d_1)} /n")
+feature = col_average_features
+print(f"task {d_0} vs {d_1} Feature {feature.__name__} Accuracy = {MNIST_task_accuracy(feature,d_0,d_1)} /n")
+feature = top_bottom_features
+print(f"task {d_0} vs {d_1} Feature {feature.__name__} Accuracy = {MNIST_task_accuracy(feature,d_0,d_1)} /n")
